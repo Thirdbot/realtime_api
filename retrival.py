@@ -11,12 +11,12 @@ load_dotenv()
 class RAG:
     def __init__(self):
         self.sentence_transformer_model = "sentence-transformers/all-MiniLM-L6-v2"
-        #demo url about animal the realone will get from inputs like web_link or pdf or model suggestion or etc..
+        #demo url about computer the realone will get from inputs like web_link or pdf or model suggestion or etc..
         self.urls = [
-            "https://en.wikipedia.org/wiki/Animal",
-            "https://en.wikipedia.org/wiki/Bird",
-            "https://en.wikipedia.org/wiki/Fish",
-            "https://en.wikipedia.org/wiki/Reptile"
+            "https://en.wikipedia.org/wiki/Computer",
+            "https://en.wikipedia.org/wiki/Laptop",
+            "https://en.wikipedia.org/wiki/Desktop",
+            "https://en.wikipedia.org/wiki/Tablet"
         ]
 
         # Initialize Milvus client with proper environment variables
@@ -33,6 +33,7 @@ class RAG:
             chunk_overlap=0,
         )
 
+        # Split documents while preserving metadata
         self.doc_split = text_splitter.split_documents(doc_list)
 
     def create_vector_store(self):
@@ -46,7 +47,13 @@ class RAG:
                 "token": os.getenv("MILVUS_TOKEN")
             },
         )
-        retriver = vector_store.as_retriever()
+        # Configure retriever to return formatted results
+        retriver = vector_store.as_retriever(
+            search_kwargs={
+                "k": 3,  # Number of documents to retrieve
+                "score_threshold": 0.5  # Minimum similarity score
+            }
+        )
         return retriver
 
 
