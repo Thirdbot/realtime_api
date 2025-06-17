@@ -57,10 +57,12 @@ class VLLMRunnable(Runnable):
     def __init__(self, llm: LLM):
         self.llm = llm
         self.sampling_params = SamplingParams(
-            temperature=0.7,
-            top_p=0.95,
-            max_tokens=512,  # Allow longer responses
-            stop=None
+            temperature=0.5,  # Lower temperature for more focused answers
+            top_p=0.9,
+            max_tokens=512,  # Shorter responses to avoid repetition
+            stop=["\n\n", "Question:", "Answer:"],  # Stop at natural boundaries
+            frequency_penalty=1.0,  # Reduce repetition
+            presence_penalty=0.6  # Encourage diverse content
         )
         
     def invoke(self, input: str, config=None) -> str:
@@ -71,12 +73,12 @@ class VLLMRunnable(Runnable):
 try:
     vllm_model = LLM(
         model=text_generation_model,
-        gpu_memory_utilization=0.5,  # Use 10% of GPU memory
-        max_model_len=32768,  # Keep sequence length small
-        dtype="float16",  # Use float16 for better memory efficiency
+        gpu_memory_utilization=0.5,
+        max_model_len=32768,
+        dtype="float16",
         trust_remote_code=True,
-        max_num_batched_tokens=4096,  # Allow larger batches
-        max_num_seqs=32  # Allow more concurrent sequences
+        max_num_batched_tokens=2048,  # Reduced batch size
+        max_num_seqs=16  # Reduced concurrent sequences
     )
     llm = VLLMRunnable(vllm_model)
 except Exception as e:
@@ -85,12 +87,12 @@ except Exception as e:
     try:
         vllm_model = LLM(
             model=text_generation_model,
-            gpu_memory_utilization=0.4,  # Use only 5% of GPU memory
-            max_model_len=32768,  # Very small sequence length
+            gpu_memory_utilization=0.4,
+            max_model_len=32768,
             dtype="float16",
             trust_remote_code=True,
-            max_num_batched_tokens=2048,
-            max_num_seqs=16
+            max_num_batched_tokens=1024,
+            max_num_seqs=8
         )
         llm = VLLMRunnable(vllm_model)
     except Exception as e:
